@@ -1314,9 +1314,9 @@ fi
 echo "Rados Block Device engine     $rbd"
 
 ##########################################
-LIBS="-lhdcs $LIBS"
-hdcs="yes"
-echo "HDCS engine                   $hdcs"
+LIBS="-lckvdb -lhlkvds $LIBS"
+kvdb="yes"
+echo "KVDB engine                   $kvdb"
 
 ##########################################
 # check for rbd_invaidate_cache()
@@ -1780,8 +1780,8 @@ fi
 if test "$rbd" = "yes" ; then
   output_sym "CONFIG_RBD"
 fi
-if test "$hdcs" = "yes" ; then
-  output_sym "CONFIG_HDCS"
+if test "$kvdb" = "yes" ; then
+  output_sym "CONFIG_KVDB"
 fi
 if test "$rbd_inval" = "yes" ; then
   output_sym "CONFIG_RBD_INVAL"

@@ -96,8 +96,11 @@ endif
 ifdef CONFIG_RBD
   SOURCE += engines/rbd.c
 endif
-ifdef CONFIG_HDCS
-  SOURCE += engines/hdcs.c
+#ifdef CONFIG_HDCS
+#  SOURCE += engines/hdcs.c
+#endif
+ifdef CONFIG_KVDB
+  SOURCE += engines/kvdb.c
 endif
 ifndef CONFIG_STRSEP
   SOURCE += oslib/strsep.c
