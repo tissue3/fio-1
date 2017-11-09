@@ -25,14 +25,62 @@ struct kvdb_data {
 
 struct kvdb_options {
 	void *pad;
-	char *cluster_name;
 	char *kvdb_name;
-	char *pool_name;
-	char *client_name;
+	bool disable_cache;
+	int cache_size;
+	int cache_policy;
+	int slru_partition;
 	int busy_poll;
 };
 
 static struct fio_option options[] = {
+	{	
+		.name	= "kvdb_name",
+		.lname	= "kvdb instance name",
+		.type	= FIO_OPT_STR_STORE,
+		.off1	= offsetof(struct kvdb_options, kvdb_name),
+		.help	= "Different hdcs name will reflect in different cache name",
+		.def	= "kvdb",
+		.category = FIO_OPT_C_ENGINE,
+		.group	= FIO_OPT_G_RBD,
+	},
+	{       
+                .name   = "disable_cache",
+		.lname  = "disable read cache",
+                .type   = FIO_OPT_BOOL,        
+	        .off1   = offsetof(struct kvdb_options, disable_cache), 
+                .help   = "kvdb",
+                .def    = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
+	{
+		.name	= "cache_size",
+		.lname	= "read cache size",
+		.type	= FIO_OPT_INT,
+		.off1	= offsetof(struct kvdb_options, cache_size),
+		.help	= "kvdb",
+		.category = FIO_OPT_C_ENGINE,
+		.group  = FIO_OPT_G_RBD,
+	},
+        {       .name   = "cache_policy",
+                .lname  = "read cache policy",
+                .type   = FIO_OPT_INT,    
+		.off1   = offsetof(struct kvdb_options, cache_policy),
+                .help   = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
+        {       .name   = "slru_partition",
+                .lname  = "partition when slru policy",
+                .type   = FIO_OPT_INT,   
+                .off1   = offsetof(struct kvdb_options, slru_partition),
+                .help   = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
+
+
 };
 
 static int _fio_setup_kvdb_data(struct thread_data *td,
@@ -68,8 +116,8 @@ failed:
 static int _fio_kvdb_connect(struct thread_data *td)
 {
 	struct kvdb_data *kvdb = td->io_ops->data;
-
-	kvdb_open(&(kvdb->io));
+	struct kvdb_options *o = td->eo;
+	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size, o->cache_policy, o->slru_partition);
 	return 0;
 
 }
