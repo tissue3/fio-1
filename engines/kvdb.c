@@ -28,6 +28,7 @@ struct kvdb_options {
 	char *kvdb_name;
 	bool disable_cache;
 	int cache_size;
+	bool isDedup;
 	int cache_policy;
 	int slru_partition;
 	int busy_poll;
@@ -63,6 +64,15 @@ static struct fio_option options[] = {
 		.category = FIO_OPT_C_ENGINE,
 		.group  = FIO_OPT_G_RBD,
 	},
+        {       
+                .name   = "cache_isDedup",
+                .lname  = "dedup or not",
+                .type   = FIO_OPT_BOOL,                .off1   = offsetof(struct kvdb_options, isDedup),
+                .help   = "kvdb",
+                .def    = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
         {       .name   = "cache_policy",
                 .lname  = "read cache policy",
                 .type   = FIO_OPT_INT,    
@@ -79,7 +89,6 @@ static struct fio_option options[] = {
                 .category = FIO_OPT_C_ENGINE,
                 .group  = FIO_OPT_G_RBD,
         },
-
 
 };
 
@@ -117,7 +126,8 @@ static int _fio_kvdb_connect(struct thread_data *td)
 {
 	struct kvdb_data *kvdb = td->io_ops->data;
 	struct kvdb_options *o = td->eo;
-	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size, o->cache_policy, o->slru_partition);
+	printf("%s  %d  %d  %d  %d  %d\n",o->kvdb_name,o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition);
+	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition);
 	return 0;
 
 }
