@@ -126,8 +126,8 @@ static int _fio_kvdb_connect(struct thread_data *td)
 {
 	struct kvdb_data *kvdb = td->io_ops->data;
 	struct kvdb_options *o = td->eo;
-	printf("%s  %d  %d  %d  %d  %d\n",o->kvdb_name,o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition);
-	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition);
+//	printf("%s  %d  %d  %d  %d  %d\n",o->kvdb_name,o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition); //o->isDedup
+	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size,o->isDedup, o->cache_policy, o->slru_partition);
 	return 0;
 
 }
@@ -320,11 +320,12 @@ static int fio_kvdb_queue(struct thread_data *td, struct io_u *io_u)
 
 	if (io_u->ddir == DDIR_WRITE) {
 		r = kvdb_aio_write(kvdb->io, io_u->xfer_buf, io_u->offset, io_u->xfer_buflen, fri->completion);
-		//fri->io_complete = 1;
-		_fio_kvdb_finish_aiocb(fri->completion,fri); 
+		fri->io_complete = 1;
+		r = 0;
+		//_fio_kvdb_finish_aiocb(fri->completion,fri); 
  		/*string get_data;
-  		((hlkvds::KVDS *)io)->Get(data, length, get_data);
-		r = 0;*/		
+  		((hlkvds::KVDS *)io)->Get(data, length, get_data);*/
+		r = 0;		
 		if (r < 0) {
 			log_err("kvdb_aio_write failed.\n");
 			goto failed_comp;
@@ -332,8 +333,9 @@ static int fio_kvdb_queue(struct thread_data *td, struct io_u *io_u)
 
 	} else if (io_u->ddir == DDIR_READ) {
 		r = kvdb_aio_read(kvdb->io, io_u->xfer_buf, io_u->offset, io_u->xfer_buflen, fri->completion);
-		//fri->io_complete = 1;
-		_fio_kvdb_finish_aiocb(fri->completion,fri);		
+		fri->io_complete = 1;
+		r = 0;
+		//_fio_kvdb_finish_aiocb(fri->completion,fri);		
 		/*((hlkvds::KVDS *)io)->Insert(data, length, data, length);
 		r = 0;*/
 		if (r < 0) {
