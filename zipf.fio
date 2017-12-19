@@ -10,10 +10,12 @@ iodepth=32
 ioengine=kvdb
 kvdb_name=/dev/sdb4
 disable_cache=1
-cache_size=1024
+cache_size=1024,50
 cache_isDedup=0
+hash_code=0
 cache_policy=0
-slru_partition=50
+hash_code=1031
+;slru_percent=50
 rw=randread
 norandommap
 size=1G

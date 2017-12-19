@@ -27,10 +27,12 @@ struct kvdb_options {
 	void *pad;
 	char *kvdb_name;
 	bool disable_cache;
-	int cache_size;
+	bool isSegmented;
 	bool isDedup;
 	int cache_policy;
-	int slru_partition;
+	int hash_code;
+	char *cache_size;
+	//int slru_percent;
 	int busy_poll;
 };
 
@@ -55,15 +57,15 @@ static struct fio_option options[] = {
                 .category = FIO_OPT_C_ENGINE,
                 .group  = FIO_OPT_G_RBD,
         },
-	{
-		.name	= "cache_size",
-		.lname	= "read cache size",
-		.type	= FIO_OPT_INT,
-		.off1	= offsetof(struct kvdb_options, cache_size),
-		.help	= "kvdb",
-		.category = FIO_OPT_C_ENGINE,
-		.group  = FIO_OPT_G_RBD,
-	},
+        {
+                .name   = "cache_isSegmented",
+                .lname  = "segmened hash table or not",
+                .type   = FIO_OPT_BOOL,                .off1   = offsetof(struct kvdb_options, isSegmented),
+                .help   = "kvdb",
+                .def    = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
         {       
                 .name   = "cache_isDedup",
                 .lname  = "dedup or not",
@@ -81,14 +83,31 @@ static struct fio_option options[] = {
                 .category = FIO_OPT_C_ENGINE,
                 .group  = FIO_OPT_G_RBD,
         },
-        {       .name   = "slru_partition",
-                .lname  = "partition when slru policy",
-                .type   = FIO_OPT_INT,   
-                .off1   = offsetof(struct kvdb_options, slru_partition),
+        {       .name   = "hash_code",
+                .lname  = "hash code if segmented hash table",
+                .type   = FIO_OPT_INT,
+                .off1   = offsetof(struct kvdb_options, hash_code),
                 .help   = "kvdb",
                 .category = FIO_OPT_C_ENGINE,
                 .group  = FIO_OPT_G_RBD,
         },
+        {
+                .name   = "cache_size",
+                .lname  = "read cache size",
+                .type   = FIO_OPT_STR_STORE,
+                .off1   = offsetof(struct kvdb_options, cache_size),
+                .help   = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },
+        /*{       .name   = "slru_percent",
+                .lname  = "partition when slru policy",
+                .type   = FIO_OPT_INT,   
+                .off1   = offsetof(struct kvdb_options, slru_percent),
+                .help   = "kvdb",
+                .category = FIO_OPT_C_ENGINE,
+                .group  = FIO_OPT_G_RBD,
+        },*/
 
 };
 
@@ -126,8 +145,25 @@ static int _fio_kvdb_connect(struct thread_data *td)
 {
 	struct kvdb_data *kvdb = td->io_ops->data;
 	struct kvdb_options *o = td->eo;
-//	printf("%s  %d  %d  %d  %d  %d\n",o->kvdb_name,o->disable_cache, o->cache_size, o->isDedup, o->cache_policy, o->slru_partition); //o->isDedup
-	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->cache_size,o->isDedup, o->cache_policy, o->slru_partition);
+
+
+        char *ptr;
+	char *s_input = o->cache_size;
+        int segment_size = 0, slru_percent = 0; 
+	char *p;
+	ptr = strtok_r(s_input, ",", &p);
+	sscanf(ptr, "%d", &segment_size);
+	ptr = strtok_r(NULL, ",", &p);
+	sscanf(ptr, "%d", &slru_percent);
+	/*if(part!=NULL){
+        	sscanf(part, "%d", &segment_size);
+		part=strtok(NULL, split);
+		if(part!=NULL){
+			sscanf(part, "%d", &slru_percent);
+		}
+	}*/
+
+	kvdb_open(&(kvdb->io), o->kvdb_name, o->disable_cache, o->isSegmented, o->isDedup, o->cache_policy, o->hash_code, segment_size, slru_percent);
 	return 0;
 
 }
